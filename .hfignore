@@ -1,0 +1,11 @@
+# Local/dev files
+.git/
+.claude/
+.gitignore
+.gitkeep
+CLAUDE.md
+firebase-debug.log
+
+# Empty placeholder files
+data/raw/
+data/images/
