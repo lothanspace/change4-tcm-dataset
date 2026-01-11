@@ -104,12 +104,12 @@ If you use this dataset in your research, please cite:
 
 ```bibtex
 @misc{chang4tcm2025,
-  author       = {Yu, Sam and H, Christoper and Nasika, Tanvi and Shao, Yi and Singhania, Amay},
+  author       = {Yu, Sam and Huang, Christoper and Nasika, Tanvi and Shao, Yi and Singhania, Amay},
   title        = {Chang'E-4 Terrain Classification Dataset},
   year         = {2026},
   organization = {Lothan Space, IHS Maker Club},
-  publisher    = {GitHub},
-  url          = {https://github.com/siyu6974/change4-tcm-dataset}
+  publisher    = {HuggingFace},
+  url          = {https://huggingface.co/datasets/lothanspace/change4-tcm-dataset}
 }
 ```
 
