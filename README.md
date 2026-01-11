@@ -103,7 +103,7 @@ python scripts/convert_pds.py data/raw data/images --flat
 If you use this dataset in your research, please cite:
 
 ```bibtex
-@misc{chang4tcm2025,
+@misc{chang4tcm2026,
   author       = {Yu, Sam and Huang, Christoper and Nasika, Tanvi and Shao, Yi and Singhania, Amay},
   title        = {Chang'E-4 Terrain Classification Dataset},
   year         = {2026},
