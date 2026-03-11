@@ -94,14 +94,24 @@ def strip_image_data(json_path: str) -> None:
 
 def build_hf_annotation_row(annotation: dict, json_path: str) -> dict:
     """Return a JSON-serializable row for HF streaming from raw annotations."""
+    shapes = []
+    for shape in annotation.get("shapes", []):
+        shapes.append({
+            "label": shape.get("label"),
+            "shape_type": shape.get("shape_type"),
+            "points": shape.get("points", []),
+            "description": shape.get("description"),
+            "group_id": shape.get("group_id"),
+        })
+
     return {
         "source_file": os.path.basename(json_path),
         "version": annotation.get("version"),
-        "flags": annotation.get("flags", {}),
-        "shapes": annotation.get("shapes", []),
+        "shapes": shapes,
         "imagePath": annotation.get("imagePath"),
         "imageHeight": annotation.get("imageHeight"),
         "imageWidth": annotation.get("imageWidth"),
+        "num_shapes": len(shapes),
     }
 
 
