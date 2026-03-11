@@ -10,7 +10,7 @@ tags:
   - planetary-science
 pretty_name: Chang'E-4 Terrain Classification Dataset
 configs:
-  - config_name: default
+  - config_name: annotations
     data_files:
       - split: train
         path: data/masks/*.json
