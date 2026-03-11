@@ -9,31 +9,16 @@ tags:
   - segmentation
   - planetary-science
 pretty_name: Chang'E-4 Terrain Classification Dataset
-dataset_info:
-  features:
-    - name: image
-      dtype: image
-    - name: image_filename
-      dtype: string
-    - name: width
-      dtype: int32
-    - name: height
-      dtype: int32
-    - name: num_shapes
-      dtype: int32
-  splits:
-    - name: train
-      num_examples: 234
 configs:
   - config_name: default
     data_files:
       - split: train
-        path: data/metadata.jsonl
+        path: data/masks/*.json
 ---
 
 # Chang'E-4 TCM Dataset
 
-Tools and data for terrain classification using Chang'E-4 Yutu-2 rover imagery.
+LabelMe terrain annotations for Chang'E-4 Yutu-2 rover imagery.
 
 > **Dataset:** Segmentation masks are available on [Hugging Face](https://huggingface.co/datasets/lothanspace/change4-tcm-dataset).
 
@@ -45,12 +30,24 @@ Tools and data for terrain classification using Chang'E-4 Yutu-2 rover imagery.
 # Install dependencies
 pip install -r requirements.txt
 
-# Generate mask PNGs and metadata from annotations
+# Strip embedded imageData before publishing raw annotations to Hugging Face
+python scripts/prepare_dataset.py --strip-only
+
+# Generate local mask PNGs and metadata from annotations
 python scripts/prepare_dataset.py
 
 # Convert PDS files to images (requires raw data from CLPDS)
 python scripts/convert_pds.py data/raw data/images
 ```
+
+For the Hugging Face dataset, publish only `data/masks/*.json`. Strip the
+embedded `imageData` field first so the annotation files stay small enough for
+the dataset viewer to stream reliably.
+
+## Annotation Format
+
+Each dataset row is one LabelMe JSON annotation from `data/masks/*.json`. The
+`shapes` field contains polygon or rectangle regions with the labels below.
 
 ### Class Labels
 
@@ -120,8 +117,8 @@ python scripts/convert_pds.py data/raw data/images --flat
 ```
 ├── data/
 │   ├── masks/           # LabelMe annotation JSONs
-│   ├── masks_png/       # Indexed mask PNGs (generated)
-│   ├── metadata.jsonl   # HuggingFace dataset metadata (generated)
+│   ├── masks_png/       # Indexed mask PNGs (generated locally)
+│   ├── metadata.jsonl   # Local metadata for derived assets
 │   ├── class_labels.json
 │   ├── raw/             # Downloaded PDS4 files (you provide)
 │   └── images/          # Converted PNG images (generated)

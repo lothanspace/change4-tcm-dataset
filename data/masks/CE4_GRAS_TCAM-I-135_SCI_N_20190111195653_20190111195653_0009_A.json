@@ -1,0 +1,28 @@
+{
+  "version": "5.10.1",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "rover",
+      "points": [
+        [
+          2347.56862745098,
+          1726.7450980392155
+        ],
+        [
+          2.4705882352940876,
+          1.254901960784288
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "rectangle",
+      "flags": {},
+      "mask": null
+    }
+  ],
+  "imagePath": "CE4_GRAS_TCAM-I-135_SCI_N_20190111195653_20190111195653_0009_A.png",
+  "imageData": null,
+  "imageHeight": 1728,
+  "imageWidth": 2352
+}

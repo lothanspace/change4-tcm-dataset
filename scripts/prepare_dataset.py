@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Prepare the HuggingFace dataset from LabelMe JSON annotations.
+"""Prepare local derivatives from LabelMe JSON annotations.
 
-Generates indexed mask PNGs and a metadata.jsonl file that HuggingFace
-datasets can load directly. Also strips base64 imageData from the JSON
-files to keep the repository lightweight.
+By default this script generates indexed mask PNGs and a metadata.jsonl file.
+It can also strip base64 imageData from the JSON files without generating any
+derived assets, which is useful when publishing only the raw annotations to
+Hugging Face.
 
 Class mapping (index -> label):
     0: background
@@ -19,6 +20,7 @@ Class mapping (index -> label):
 Usage:
     python scripts/prepare_dataset.py
     python scripts/prepare_dataset.py --skip-strip   # keep imageData in JSONs
+    python scripts/prepare_dataset.py --strip-only   # only strip imageData
 """
 
 import argparse
@@ -92,12 +94,35 @@ def strip_image_data(json_path: str) -> None:
 def main():
     parser = argparse.ArgumentParser(description="Prepare HF dataset from LabelMe annotations")
     parser.add_argument("--skip-strip", action="store_true", help="Don't strip imageData from JSONs")
+    parser.add_argument(
+        "--strip-only",
+        action="store_true",
+        help="Only strip imageData from JSONs; don't generate PNGs or metadata",
+    )
     args = parser.parse_args()
+
+    if args.strip_only and args.skip_strip:
+        parser.error("--strip-only and --skip-strip cannot be used together")
 
     json_files = sorted(glob.glob(os.path.join(MASKS_DIR, "*.json")))
     if not json_files:
         print(f"No JSON files found in {MASKS_DIR}", file=sys.stderr)
         sys.exit(1)
+
+    if args.strip_only:
+        stripped_count = 0
+        for i, json_path in enumerate(json_files):
+            with open(json_path, "r") as f:
+                annotation = json.load(f)
+            if annotation.get("imageData") is not None:
+                strip_image_data(json_path)
+                stripped_count += 1
+
+            if (i + 1) % 50 == 0 or (i + 1) == len(json_files):
+                print(f"  [{i + 1}/{len(json_files)}] processed")
+
+        print(f"\nDone: stripped imageData from {stripped_count}/{len(json_files)} JSON files")
+        return
 
     os.makedirs(MASKS_PNG_DIR, exist_ok=True)
 

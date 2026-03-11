@@ -9,3 +9,6 @@ firebase-debug.log
 # Empty placeholder files
 data/raw/
 data/images/
+data/masks_png/
+data/metadata.jsonl
+data/class_labels.json

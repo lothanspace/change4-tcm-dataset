@@ -210,9 +210,9 @@ __marimo__/
 # LLM
 CLAUDE.md
 
-# Annotation data (hosted on Hugging Face)
-data/masks/
+# Local/generated data
+data/raw/
+data/images/
 data/masks_png/
 data/metadata.jsonl
 data/class_labels.json
-
