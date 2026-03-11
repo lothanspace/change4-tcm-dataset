@@ -13,7 +13,7 @@ configs:
   - config_name: annotations
     data_files:
       - split: train
-        path: data/masks/*.json
+        path: data/masks/train.jsonl
 ---
 
 # Chang'E-4 TCM Dataset
@@ -30,8 +30,8 @@ LabelMe terrain annotations for Chang'E-4 Yutu-2 rover imagery.
 # Install dependencies
 pip install -r requirements.txt
 
-# Strip embedded imageData before publishing raw annotations to Hugging Face
-python scripts/prepare_dataset.py --strip-only
+# Build the Hugging Face JSONL manifest from raw annotations
+python scripts/prepare_dataset.py --hf-jsonl
 
 # Generate local mask PNGs and metadata from annotations
 python scripts/prepare_dataset.py
@@ -40,14 +40,15 @@ python scripts/prepare_dataset.py
 python scripts/convert_pds.py data/raw data/images
 ```
 
-For the Hugging Face dataset, publish only `data/masks/*.json`. Strip the
-embedded `imageData` field first so the annotation files stay small enough for
-the dataset viewer to stream reliably.
+For the Hugging Face dataset, publish only files under `data/masks/`. Generate
+`data/masks/train.jsonl` from the stripped LabelMe annotations so the dataset
+viewer can stream rows reliably.
 
 ## Annotation Format
 
-Each dataset row is one LabelMe JSON annotation from `data/masks/*.json`. The
-`shapes` field contains polygon or rectangle regions with the labels below.
+Each dataset row comes from `data/masks/train.jsonl`, with one stripped
+LabelMe annotation per line. The `shapes` field contains polygon or rectangle
+regions with the labels below.
 
 ### Class Labels
 
@@ -117,6 +118,7 @@ python scripts/convert_pds.py data/raw data/images --flat
 ```
 ├── data/
 │   ├── masks/           # LabelMe annotation JSONs
+│   │   └── train.jsonl  # HF streaming manifest generated from masks/
 │   ├── masks_png/       # Indexed mask PNGs (generated locally)
 │   ├── metadata.jsonl   # Local metadata for derived assets
 │   ├── class_labels.json

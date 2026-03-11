@@ -2,9 +2,8 @@
 """Prepare local derivatives from LabelMe JSON annotations.
 
 By default this script generates indexed mask PNGs and a metadata.jsonl file.
-It can also strip base64 imageData from the JSON files without generating any
-derived assets, which is useful when publishing only the raw annotations to
-Hugging Face.
+It can also strip base64 imageData from the JSON files and generate a JSONL
+manifest for publishing the raw annotations to Hugging Face.
 
 Class mapping (index -> label):
     0: background
@@ -21,6 +20,7 @@ Usage:
     python scripts/prepare_dataset.py
     python scripts/prepare_dataset.py --skip-strip   # keep imageData in JSONs
     python scripts/prepare_dataset.py --strip-only   # only strip imageData
+    python scripts/prepare_dataset.py --hf-jsonl     # write data/masks/train.jsonl
 """
 
 import argparse
@@ -48,6 +48,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MASKS_DIR = os.path.join(ROOT, "data", "masks")
 MASKS_PNG_DIR = os.path.join(ROOT, "data", "masks_png")
 METADATA_PATH = os.path.join(ROOT, "data", "metadata.jsonl")
+HF_JSONL_PATH = os.path.join(MASKS_DIR, "train.jsonl")
 
 
 def render_mask(annotation: dict) -> Image.Image:
@@ -91,6 +92,29 @@ def strip_image_data(json_path: str) -> None:
         json.dump(data, f, indent=2)
 
 
+def build_hf_annotation_row(annotation: dict, json_path: str) -> dict:
+    """Return a JSON-serializable row for HF streaming from raw annotations."""
+    return {
+        "source_file": os.path.basename(json_path),
+        "version": annotation.get("version"),
+        "flags": annotation.get("flags", {}),
+        "shapes": annotation.get("shapes", []),
+        "imagePath": annotation.get("imagePath"),
+        "imageHeight": annotation.get("imageHeight"),
+        "imageWidth": annotation.get("imageWidth"),
+    }
+
+
+def write_hf_jsonl(json_files: list[str]) -> None:
+    """Write a JSONL manifest that HF can stream reliably."""
+    with open(HF_JSONL_PATH, "w") as f:
+        for json_path in json_files:
+            with open(json_path, "r") as src:
+                annotation = json.load(src)
+            row = build_hf_annotation_row(annotation, json_path)
+            f.write(json.dumps(row, ensure_ascii=True) + "\n")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Prepare HF dataset from LabelMe annotations")
     parser.add_argument("--skip-strip", action="store_true", help="Don't strip imageData from JSONs")
@@ -98,6 +122,11 @@ def main():
         "--strip-only",
         action="store_true",
         help="Only strip imageData from JSONs; don't generate PNGs or metadata",
+    )
+    parser.add_argument(
+        "--hf-jsonl",
+        action="store_true",
+        help="Write data/masks/train.jsonl for Hugging Face streaming",
     )
     args = parser.parse_args()
 
@@ -122,6 +151,24 @@ def main():
                 print(f"  [{i + 1}/{len(json_files)}] processed")
 
         print(f"\nDone: stripped imageData from {stripped_count}/{len(json_files)} JSON files")
+        return
+
+    if args.hf_jsonl:
+        stripped_count = 0
+        for i, json_path in enumerate(json_files):
+            with open(json_path, "r") as f:
+                annotation = json.load(f)
+            if not args.skip_strip and annotation.get("imageData") is not None:
+                strip_image_data(json_path)
+                stripped_count += 1
+
+            if (i + 1) % 50 == 0 or (i + 1) == len(json_files):
+                print(f"  [{i + 1}/{len(json_files)}] processed")
+
+        write_hf_jsonl(json_files)
+        print(f"\nDone: wrote HF JSONL to {HF_JSONL_PATH}")
+        if not args.skip_strip:
+            print(f"Stripped imageData from {stripped_count}/{len(json_files)} JSON files")
         return
 
     os.makedirs(MASKS_PNG_DIR, exist_ok=True)
