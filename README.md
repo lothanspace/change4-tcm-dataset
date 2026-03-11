@@ -9,6 +9,26 @@ tags:
   - segmentation
   - planetary-science
 pretty_name: Chang'E-4 Terrain Classification Dataset
+dataset_info:
+  features:
+    - name: image
+      dtype: image
+    - name: image_filename
+      dtype: string
+    - name: width
+      dtype: int32
+    - name: height
+      dtype: int32
+    - name: num_shapes
+      dtype: int32
+  splits:
+    - name: train
+      num_examples: 234
+configs:
+  - config_name: default
+    data_files:
+      - split: train
+        path: data/metadata.jsonl
 ---
 
 # Chang'E-4 TCM Dataset
@@ -25,9 +45,26 @@ Tools and data for terrain classification using Chang'E-4 Yutu-2 rover imagery.
 # Install dependencies
 pip install -r requirements.txt
 
-# Convert PDS files to images
+# Generate mask PNGs and metadata from annotations
+python scripts/prepare_dataset.py
+
+# Convert PDS files to images (requires raw data from CLPDS)
 python scripts/convert_pds.py data/raw data/images
 ```
+
+### Class Labels
+
+| Index | Label      |
+|-------|------------|
+| 0     | background |
+| 1     | crater     |
+| 2     | shadow     |
+| 3     | surface    |
+| 4     | rock       |
+| 5     | soil       |
+| 6     | rover      |
+| 7     | space      |
+| 8     | rocker     |
 
 ## Downloading Chang'E-4 Data
 
@@ -82,13 +119,17 @@ python scripts/convert_pds.py data/raw data/images --flat
 
 ```
 ├── data/
-│   ├── masks/        # Segmentation mask annotations (JSON)
-│   ├── raw/          # Downloaded PDS4 files (you provide)
-│   └── images/       # Converted PNG images (generated)
+│   ├── masks/           # LabelMe annotation JSONs
+│   ├── masks_png/       # Indexed mask PNGs (generated)
+│   ├── metadata.jsonl   # HuggingFace dataset metadata (generated)
+│   ├── class_labels.json
+│   ├── raw/             # Downloaded PDS4 files (you provide)
+│   └── images/          # Converted PNG images (generated)
 ├── docs/
 │   └── chinese-moon-data-access.md
 ├── scripts/
-│   └── convert_pds.py
+│   ├── convert_pds.py
+│   └── prepare_dataset.py
 └── requirements.txt
 ```
 
